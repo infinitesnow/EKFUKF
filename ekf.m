@@ -13,21 +13,21 @@ I3=[0 0 0
     0 0 1];
 
 % Initial values
-q=0.005;
-r=0.01;
-epsilon=0;
-x_pred=[1/2 sqrt(2)/2 pi/4]';
-K=[0.01 0.01 0.01]';
-P=1*eye(1);
+lambda=1
+x_pred=[0 0 0]';
+K=[0 0 0]';
+P=0.1*eye(1);
+
+r=1
+q=lambda*r
 
 pred_vec=[];
 for i = 1:simulation_length
-    x_pred_model = [    cos(x_pred(3))*x_pred(1)-sin(x_pred(3))*x_pred(2)
-                        sin(x_pred(3))*x_pred(1)+cos(x_pred(3))*x_pred(2)
-                        (1-epsilon)*x_pred(3)                                  ]; % Use the model to predict next state
+    x_pred_model=f(x_pred); % Compute f in the state predicted by the Kalman filter in the previous instant
     e = y(i)-H*x_pred_model; % Compute the innovation
-    x_pred=x_pred_model + K*e; % Compute the new Kalman prediction
-    pred_vec = [pred_vec x_pred]; % Add new prediction of omega
+    x_pred=x_pred_model+K*e; % Compute the new Kalman prediction
+    
+    pred_vec = [pred_vec x_pred]; % Save new prediction
 
     F=compute_F(x_pred); % Compute F in the predicted state
     P_new=F*(P-K*H*P)*F'+q*I3; % Compute the new P
@@ -50,7 +50,12 @@ hold on
 plot(y)
 plot(original_signal,'r--')
 
-function F = compute_F(x)
+function x_pred_model = f(x) % Use the model to predict next state
+    x_pred_model = [    cos(x(3))*x(1)-sin(x(3))*x(2)
+                        sin(x(3))*x(1)+cos(x(3))*x(2)
+                        x(3)                                  ];
+end
+function F = compute_F(x) % Compute F matrix in a given state 
     F=[     cos(x(3))   -sin(x(3))  -sin(x(3))*x(1)-cos(x(3))*x(2)
             sin(x(3))   cos(x(3))    cos(x(3))*x(1)-sin(x(3))*x(2)
             0           0            1                               ];
