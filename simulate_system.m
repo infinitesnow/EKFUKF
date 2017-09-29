@@ -1,7 +1,7 @@
 function out = simulate_system(x1_0,x2_0,x3_0,q,r,simulation_length)
     do_plot=0;
 
-    %% Create animated plot
+    %% Create animated vector plot
     if do_plot==1 
         figure(1)
         hold on

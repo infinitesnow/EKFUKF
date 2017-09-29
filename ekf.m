@@ -4,13 +4,13 @@ do_plot=1
 %% Input signal
 sigma=0.1
 
-%% Generate signal with PI profile
+% %% Generate signal with PI profile
 % n_samples_step = 2000;
 % n_periods_step=10;
 % [original_signal,y,omega]=generate_signal_pi(n_samples_step,n_periods_step,sigma);
 
 
-%% Generate signal with single frequency
+% %% Generate signal with single frequency
 % n_samples=10000
 % n_periods=10
 % true_pulsation=10
@@ -31,9 +31,9 @@ I3=[0 0 0
 %%% Initial values
 simulation_length=length(y);
 lambda=10
-x_pred_0=[x1_0+0.3 x2_0-0.1 x3_0-0.06]';
+x_pred_0=[x1_0+0.1 x2_0+0.2 x3_0-0.5]';
 K_0=[0 0 0]';
-P_0=0.1*ones(3);
+P_0=0.1*eye(3);
 
 %% Predict
 %%% Set initial values
@@ -46,16 +46,25 @@ pred_vec=[];
 
 %%% Initialize plot
 figure(1)
-subplot(2,1,1)
-h=animatedline
-j=animatedline
-k=animatedline
-l=animatedline
-m=animatedline
-subplot(2,1,1)
+subplot(3,1,1)
 hold on
-subplot(2,1,2)
+trueomega_line=animatedline('Color','r')
+omega_line=animatedline
+title('Omega estimation')
+subplot(3,1,2)
 hold on
+title('States')
+truesignal_line=animatedline('LineStyle','-','Marker','o')
+x1_line=animatedline('Color','b','LineStyle','--')
+x2_line=animatedline('Color','r','LineStyle','--')
+legend('Signal','x1','x2')
+subplot(3,1,3)
+hold on
+title('Kalman gain')
+k1_line=animatedline('Color','r','LineStyle','-')
+k2_line=animatedline('Color','b','LineStyle','-')
+k3_line=animatedline('Color','g','LineStyle','-')
+legend('K(1)','K(2)','K(3)')
 for i = 1:simulation_length
     x_pred_model=f(x_pred); % Compute f in the state predicted by the Kalman filter in the previous instant
     e = y(i)-H*x_pred_model; % Compute the innovation
@@ -69,17 +78,19 @@ for i = 1:simulation_length
     K=P*H'*inv(H*P*H'+r) % Compute K
     
     %%% Plot dynamically
-    if do_plot==1
-        subplot(2,1,2)
-        addpoints(h,i,x3_0)
-        addpoints(j,i,x_pred(3),'r-')
-        subplot(2,1,2)
-        addpoints(k,i,y(i),'k-o')
-        addpoints(l,i,x_pred(1),'b--')
-        addpoints(m,i,x_pred(2),'r--')
-        pause(0.1)
-        drawnow
-    end
+    subplot(3,1,1)
+    addpoints(trueomega_line,i,x3_0)
+    addpoints(omega_line,i,x_pred(3))
+    subplot(3,1,2)
+    addpoints(truesignal_line,i,y(i))
+    addpoints(x1_line,i,x_pred(1))
+    addpoints(x2_line,i,x_pred(2)) 
+    subplot(3,1,3)
+    addpoints(k1_line,i,K(1))
+    addpoints(k2_line,i,K(2))
+    addpoints(k3_line,i,K(3))
+    drawnow
+    pause(0.1)
 end
 
 function x_pred_model = f(x) % Use the model to predict next state
