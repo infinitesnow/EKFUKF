@@ -1,5 +1,5 @@
 function [signal, noisy_signal, instantaneous_omega] = generate_signal_pi(n_samples_step,n_periods_step,sigma)
-    do_plot=0
+    do_plot=1
     
     t = linspace(1,(2*n_periods_step+1)*pi,n_samples_step);
 
