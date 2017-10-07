@@ -1,7 +1,5 @@
 function [noisy_signal, instantaneous_omega] = generate_signal_step(n_periods_step,initial_omega,steps,sigma_error)
     profile = generate_profile(initial_omega,steps);  
-
-    % We generate the input signal
     signal=[];
     instantaneous_omega=[];
     for omega = profile
