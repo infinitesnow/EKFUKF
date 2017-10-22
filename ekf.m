@@ -1,19 +1,17 @@
-function [pred_vec K_vec e_vec P_vec]=ekf(lambda,x_pred_0,sigma_init,signal,omega)
+function [pred_vec K_vec e_vec P_vec]=ekf(lambda,x_pred_0,sigma_init,signal)
 
     %% Set initial values
     simulation_length=length(signal);
     
-    r=1;
-    q=lambda*r;
+    q=1;
+    r=lambda;
     
     x_pred=x_pred_0';
     K=[0 0 0]';
     P=sigma_init*eye(3);
     
     H=[1 0 0];
-    I3=[1 0 0
-        0 1 0
-        0 0 1];
+    I3=eye(3);
     
     %% Start tracking
     pred_vec=[];
