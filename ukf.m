@@ -1,4 +1,6 @@
-function [ pred_vec K_vec e_vec P_vec ]= ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
+function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
+    SHOW_SIGMA_POINTS = false;
+    
     %% Set initial values
     L=3;
     simulation_length=length(signal);
@@ -19,7 +21,7 @@ function [ pred_vec K_vec e_vec P_vec ]= ukf(alpha,beta,k,q,r,x_pred_0,sigma_ini
     Wm=[Wm0, Wmi];
     
     % Weights to compute the covariance of the transformed sigma points
-    Wc0=lambda/(L+lambda)+1-alpha^2+beta;
+    Wc0=Wm0+1-alpha^2+beta;
     Wci=Wmi;
     Wc=[Wc0, Wci]; 
     
@@ -27,10 +29,7 @@ function [ pred_vec K_vec e_vec P_vec ]= ukf(alpha,beta,k,q,r,x_pred_0,sigma_ini
     assert(all(size(Wm)==[1 2*L+1])); 
     assert(all(size(Wc)==[1 2*L+1]));
     
-    pred_vec=[]
-    K_vec=[]
-    e_vec=[]
-    P_vec=[]
+    pred_vec=[];
     
     %% Run filter
     for k=1:simulation_length
@@ -47,6 +46,10 @@ function [ pred_vec K_vec e_vec P_vec ]= ukf(alpha,beta,k,q,r,x_pred_0,sigma_ini
         Sigma_points = [x_pred Sigma_points_p Sigma_points_m];
         n_sigma_points = size(Sigma_points,2);
         assert(n_sigma_points==2*L+1);
+        
+        if(SHOW_SIGMA_POINTS) 
+            show_sigma_points()
+        end
         
         %% Time update
         % Propagate the sigma points through the model
@@ -104,9 +107,6 @@ function [ pred_vec K_vec e_vec P_vec ]= ukf(alpha,beta,k,q,r,x_pred_0,sigma_ini
         P(P<2*eps)=0;
         
         pred_vec=[pred_vec, x_pred];
-        K_vec = [K_vec, K];
-        P_vec = [P_vec, P];
-        e_vec = [e_vec, e];
     end
     
 end
@@ -119,4 +119,12 @@ end
 
 function y_bar = compute_h(x) % Compute measurement
     y_bar = x(1);
+end
+
+function show_sigma_points()
+    figure(1)
+    hold on
+    for ii = 1:n_sigma_points
+        scatter3(Sigma_points(1,ii),Sigma_points(2,ii),Sigma_points(3,ii))
+    end
 end

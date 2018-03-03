@@ -24,14 +24,14 @@ lambda=1;
 % We initialize filter with states to 0 and around the right initial frequency with a given variance
 sigma_init=1*initial_omega; % This value is also used for the initialization of P
 % x_pred_0=[0 0 initial_omega+normrnd(0,sigma_init)];
-x_pred_0=[0.5 0.5 0.5];
+x_pred_0=[0.1 0.1 initial_omega];
 
 tic
-% [pred_vec K_vec e_vec P_vec]=ekf(lambda,x_pred_0,sigma_init,signal);
-[pred_vec K_vec e_vec P_vec]=ukf(1,2,2,0.1,0.01,x_pred_0,1,signal);
+% pred_vec=ekf(lambda,x_pred_0,sigma_init,signal);
+pred_vec=ukf(1,2,2,0.1,0.01,x_pred_0,1,signal);
 toc
 
 %% Plot results
 % dynamic_plot(omega,pred_vec,0.001) % Plot dynamically only the frequency estimationnon 
-dynamic_plot_complete(signal,omega,pred_vec,K_vec,e_vec,P_vec) % Plot dynamically all values
-% static_plot(signal,omega,pred_vec,K_vec,e_vec) % Plot statically
+% dynamic_plot_complete(signal,omega,pred_vec) % Plot dynamically all values
+static_plot(signal,omega,pred_vec) % Plot statically
