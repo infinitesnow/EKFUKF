@@ -58,6 +58,7 @@ function pred_vec=ekf(lambda,x_pred_0,sigma_init,signal)
         if (PLOT_P)
             plot_P(P);
         end
+        drawnow
     end
 end
 
@@ -76,7 +77,6 @@ function initialize_plot()
     hold on
     xlim([0 20])
     ylim auto
-    title('Kalman gain');
     global x1_line
     global x1true_line
     x1_line=animatedline('Color','r','LineStyle','-');
@@ -99,17 +99,14 @@ function do_plot(x,x1true,ii)
     global x1true_line
     addpoints(x1_line,ii,x(1))
     addpoints(x1true_line,ii,x1true)
-    drawnow
     subplot(6,3,[4 5 6])
     xlim([ii-window_size ii])
     global x2_line
     addpoints(x2_line,ii,x(2))
-    drawnow
     subplot(6,3,[7 8 9])
     xlim([ii-window_size ii])
     global x3_line
     addpoints(x3_line,ii,x(3))
-    drawnow
 end
 function initialize_plot_K()
     subplot(6,3,[10 11 12])
@@ -135,7 +132,6 @@ function plot_K(K,ii)
     addpoints(k1_line,ii,K(1))
     addpoints(k2_line,ii,K(2))
     addpoints(k3_line,ii,K(3))
-    drawnow
 end
 function initialize_plot_e()
     subplot(6,3,[13 14 15])
@@ -152,7 +148,6 @@ function plot_e(e,ii)
     xlim([ii-window_size ii])
     global e_line
     addpoints(e_line,ii,e)
-    drawnow
 end
 function initialize_plot_P()
     subplot(6,3,[16 17 18])

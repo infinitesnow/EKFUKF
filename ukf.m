@@ -1,12 +1,35 @@
-function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
+function pred_vec = ukf(alpha,beta,k,sigma,sigma_init,x_pred_0,signal)
+    global window_size 
+    window_size = 50;
+    PLOT=false;
+    PLOT_K=false;
+    PLOT_e=false;
+    PLOT_P=false;    
     SHOW_SIGMA_POINTS = false;
+
+    if (PLOT) 
+        initialize_plot();
+    end
+    if (PLOT_K)
+        initialize_plot_K();
+    end
+    if (PLOT_e)
+        initialize_plot_e();
+    end
+    if (PLOT_P)
+        initialize_plot_P();
+    end
     
     %% Set initial values
-    L=3;
+    L = size(compute_f(x_pred_0'),1); % The measurement state space size;
+    L_m = size(compute_h(x_pred_0'),1); % The measurement state space size
     simulation_length=length(signal);
     
     lambda=alpha^2*(L+k)-L;
     gamma=sqrt(L+lambda);
+    
+    q=0.0001;
+    r=sigma*q;
     
     I3=eye(3);
     Q=q*I3;
@@ -16,14 +39,16 @@ function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
         
     %% Compute weights
     % Weights to compute the mean of the transformed sigma points
-    Wm0=lambda/(L+lambda)
+    Wm0=lambda/(L+lambda);
     Wmi=1/(2*(L+lambda))*ones(1,2*L);
     Wm=[Wm0, Wmi];
+    Wm=Wm/sum(Wm);
     
     % Weights to compute the covariance of the transformed sigma points
     Wc0=Wm0+1-alpha^2+beta;
     Wci=Wmi;
     Wc=[Wc0, Wci]; 
+    Wc=Wc/sum(Wc);
     
     % Check that dimensions are valid (both row, columns)
     assert(all(size(Wm)==[1 2*L+1])); 
@@ -46,10 +71,6 @@ function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
         Sigma_points = [x_pred Sigma_points_p Sigma_points_m];
         n_sigma_points = size(Sigma_points,2);
         assert(n_sigma_points==2*L+1);
-        
-        if(SHOW_SIGMA_POINTS) 
-            show_sigma_points()
-        end
         
         %% Time update
         % Propagate the sigma points through the model
@@ -74,7 +95,7 @@ function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
         % Propagate the sigma points through the measurement function
         % In our case, we have no measurement function, so h is the
         % identity function. 
-        transformed_sigma_points_measurement=zeros(1,n_sigma_points);
+        transformed_sigma_points_measurement=zeros(L_m,n_sigma_points);
         for ii = 1:n_sigma_points
             transformed_sigma_points_measurement(:,ii)=compute_h(transformed_sigma_points_model(:,ii));
         end
@@ -83,7 +104,7 @@ function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
         mean_sigma_points_measurement=transformed_sigma_points_measurement*Wm';
         
         % Compute the transformed sigma points covariance
-        Covariance_sigma_points_measurement=zeros(1);
+        Covariance_sigma_points_measurement=zeros(L_m);
         for ii=1:length(Wc)
             deviation_ii = transformed_sigma_points_measurement(:,ii)-mean_sigma_points_measurement;
             Covariance_sigma_points_measurement=Covariance_sigma_points_measurement+Wc(ii)*(deviation_ii)*(deviation_ii)';
@@ -91,7 +112,7 @@ function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
         Covariance_sigma_points_measurement = Covariance_sigma_points_measurement + r;
         
         %% Covariance between measurement and state 
-        Covariance_sigma_points_both=zeros(L,1);
+        Covariance_sigma_points_both=zeros(L,L_m);
         for ii=1:length(Wc)
             deviation_model_ii = transformed_sigma_points_model(:,ii)-mean_sigma_points_model;
             deviation_measurement_ii = transformed_sigma_points_measurement(:,ii)-mean_sigma_points_measurement;
@@ -104,11 +125,26 @@ function pred_vec = ukf(alpha,beta,k,q,r,x_pred_0,sigma_init,signal)
         x_pred = mean_sigma_points_model+K*(e);
 
         P = Covariance_sigma_points_model-K*Covariance_sigma_points_measurement*K';
-        P(P<2*eps)=0;
         
         pred_vec=[pred_vec, x_pred];
+        
+        if (PLOT && ii~=simulation_length)
+            do_plot(x_pred,signal(k+1),k)
+        end
+        if (SHOW_SIGMA_POINTS)
+            show_sigma_points(Sigma_points)
+        end
+        if (PLOT_K) 
+            plot_K(K,k);
+        end
+        if (PLOT_e)
+            plot_e(e,k);
+        end
+        if (PLOT_P)
+            plot_P(P);
+        end
+        drawnow
     end
-    
 end
 
 function x_pred_model = compute_f(x) % Use the model to predict next state
@@ -116,15 +152,99 @@ function x_pred_model = compute_f(x) % Use the model to predict next state
                         sin(x(3))*x(1)+cos(x(3))*x(2)
                         x(3)                            ]; 
 end
-
 function y_bar = compute_h(x) % Compute measurement
     y_bar = x(1);
 end
 
-function show_sigma_points()
+
+function initialize_plot()
     figure(1)
+    subplot(6,3,[1 2 3])
     hold on
-    for ii = 1:n_sigma_points
+    xlim([0 20])
+    ylim auto
+    title('State estimation');
+    global x1_line
+    global x1true_line
+    global x2_line
+    x1_line=animatedline('Color','r','LineStyle','-');
+    x2_line=animatedline('Color','b','LineStyle','-');
+    x1true_line=animatedline();
+    legend('x(1)','x(2)','Signal')
+    subplot(6,3,[4 5 6])
+    global x3_line
+    x3_line=animatedline('Color','g','LineStyle','-');
+    legend('estimated omega')
+end
+function do_plot(x,x1true,ii)
+    global window_size
+    subplot(6,3,[1 2 3])
+    xlim([ii-window_size ii])
+    global x1_line
+    global x1true_line
+    global x2_line
+    addpoints(x1_line,ii,x(1))
+    addpoints(x1true_line,ii,x1true)
+    addpoints(x2_line,ii,x(2))
+    subplot(6,3,[4 5 6])
+    global x3_line
+    xlim([ii-window_size ii])
+    addpoints(x3_line,ii,x(3))
+end
+function initialize_plot_K()
+    subplot(6,3,[7 8 9])
+    hold on
+    xlim([0 20])
+    ylim auto
+    title('Kalman gain');
+    global k1_line
+    global k2_line
+    global k3_line
+    k1_line=animatedline('Color','r','LineStyle','-');
+    k2_line=animatedline('Color','b','LineStyle','-');
+    k3_line=animatedline('Color','g','LineStyle','-');
+    legend('K(1)','K(2)','K(3)')
+end
+function plot_K(K,ii)
+    global window_size
+    subplot(6,3,[7 8 9])
+    global k1_line
+    global k2_line
+    global k3_line
+    xlim([ii-window_size ii])
+    addpoints(k1_line,ii,K(1))
+    addpoints(k2_line,ii,K(2))
+    addpoints(k3_line,ii,K(3))
+end
+function initialize_plot_e()
+    subplot(6,3,[10 11 12])
+    hold on
+    xlim([0 20])
+    ylim auto
+    title('Innovation');
+    global e_line
+    e_line=animatedline('Color','k','LineStyle','-');
+end
+function plot_e(e,ii)
+    global window_size
+    subplot(6,3,[10 11 12])
+    xlim([ii-window_size ii])
+    global e_line
+    addpoints(e_line,ii,e)
+end
+function initialize_plot_P()
+    subplot(6,3,[13 14 15])
+end
+function plot_P(P)
+    subplot(6,3,[13 14])
+    imagesc(P)
+    colorbar
+end
+function show_sigma_points(Sigma_points)
+    figure(2)
+    hold on
+    for ii = 1:size(Sigma_points,2)
         scatter3(Sigma_points(1,ii),Sigma_points(2,ii),Sigma_points(3,ii))
     end
+    figure(1)
 end
