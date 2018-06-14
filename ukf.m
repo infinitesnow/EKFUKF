@@ -1,4 +1,4 @@
-function pred_vec = ukf(alpha,beta,k,sigma,sigma_init,x_pred_0,signal)
+function pred_vec = ukf(alpha,beta,k,q,r,sigma_init,x_pred_0,signal)
     global window_size 
     window_size = 50;
     PLOT=false;
@@ -19,19 +19,19 @@ function pred_vec = ukf(alpha,beta,k,sigma,sigma_init,x_pred_0,signal)
     if (PLOT_P)
         initialize_plot_P();
     end
+    if (SHOW_SIGMA_POINTS)
+        initialize_sp_plot();
+    end
     
     %% Set initial values
-    L = size(compute_f(x_pred_0'),1); % The measurement state space size;
+    L = size(compute_f(x_pred_0'),1); % The state space size;
     L_m = size(compute_h(x_pred_0'),1); % The measurement state space size
     simulation_length=length(signal);
     
     lambda=alpha^2*(L+k)-L;
     gamma=sqrt(L+lambda);
     
-    q=0.0001;
-    r=sigma*q;
-    
-    I3=eye(3);
+    I3=eye(L);
     Q=q*I3;
     
     x_pred=x_pred_0';
@@ -56,41 +56,41 @@ function pred_vec = ukf(alpha,beta,k,sigma,sigma_init,x_pred_0,signal)
     
     pred_vec=[];
     
-    %% Run filter
+    %% Run prediction
     for k=1:simulation_length
         
         sqrtP=chol(P,'lower'); % The matrix square root of P
                 
         %% Compute the sigma points
-        Sigma_points_p = zeros(L,L);
-        Sigma_points_m = zeros(L,L);
+        Sigma_points_plus = zeros(L,L);
+        Sigma_points_minus = zeros(L,L);
         for ii=1:L
-            Sigma_points_p(:,ii) = x_pred + gamma*sqrtP(:,ii);
-            Sigma_points_m(:,ii) = x_pred - gamma*sqrtP(:,ii);
+            Sigma_points_plus(:,ii)  = x_pred + gamma*sqrtP(:,ii);
+            Sigma_points_minus(:,ii) = x_pred - gamma*sqrtP(:,ii);
         end
-        Sigma_points = [x_pred Sigma_points_p Sigma_points_m];
+        Sigma_points = [x_pred Sigma_points_plus Sigma_points_minus];
         n_sigma_points = size(Sigma_points,2);
         assert(n_sigma_points==2*L+1);
         
-        %% Time update
+        %% Model update
         % Propagate the sigma points through the model
         transformed_sigma_points_model=zeros(L,n_sigma_points);
         for ii = 1:n_sigma_points
             transformed_sigma_points_model(:,ii)=compute_f(Sigma_points(:,ii));
         end
         
-        % Compute the transformed sigma points mean
+        % Compute the model-propagated sigma points mean
         mean_sigma_points_model=transformed_sigma_points_model*Wm';
         
-        % Compute the transformed sigma points covariance
+        % Compute the model-propagated sigma points covariance
         Covariance_sigma_points_model=zeros(L);
         for ii=1:length(Wc)
             deviation_ii = transformed_sigma_points_model(:,ii)-mean_sigma_points_model;
             Covariance_sigma_points_model=Covariance_sigma_points_model+Wc(ii)*(deviation_ii)*(deviation_ii)';
         end
         Covariance_sigma_points_model = Covariance_sigma_points_model + Q;
-        
-        %% Measurements update
+             
+        %% Measurement update
         
         % Propagate the sigma points through the measurement function
         % In our case, we have no measurement function, so h is the
@@ -100,26 +100,26 @@ function pred_vec = ukf(alpha,beta,k,sigma,sigma_init,x_pred_0,signal)
             transformed_sigma_points_measurement(:,ii)=compute_h(transformed_sigma_points_model(:,ii));
         end
         
-        % Compute the transformed sigma points mean
+        % Compute the measurement-propagated sigma points mean
         mean_sigma_points_measurement=transformed_sigma_points_measurement*Wm';
-        
-        % Compute the transformed sigma points covariance
+                
+        % Compute the measurement-propagated sigma points covariance
         Covariance_sigma_points_measurement=zeros(L_m);
         for ii=1:length(Wc)
             deviation_ii = transformed_sigma_points_measurement(:,ii)-mean_sigma_points_measurement;
             Covariance_sigma_points_measurement=Covariance_sigma_points_measurement+Wc(ii)*(deviation_ii)*(deviation_ii)';
         end
         Covariance_sigma_points_measurement = Covariance_sigma_points_measurement + r;
-        
-        %% Covariance between measurement and state 
-        Covariance_sigma_points_both=zeros(L,L_m);
+                
+        % Covariance between measurement and state 
+        Covariance_sigma_points_statemeasurement=zeros(L,L_m);
         for ii=1:length(Wc)
             deviation_model_ii = transformed_sigma_points_model(:,ii)-mean_sigma_points_model;
             deviation_measurement_ii = transformed_sigma_points_measurement(:,ii)-mean_sigma_points_measurement;
-            Covariance_sigma_points_both=Covariance_sigma_points_both+Wc(ii)*(deviation_model_ii)*(deviation_measurement_ii)';
+            Covariance_sigma_points_statemeasurement=Covariance_sigma_points_statemeasurement+Wc(ii)*(deviation_model_ii)*(deviation_measurement_ii)';
         end
 
-        K = Covariance_sigma_points_both*inv(Covariance_sigma_points_measurement);
+        K = Covariance_sigma_points_statemeasurement*inv(Covariance_sigma_points_measurement);
         
         e = signal(k)-mean_sigma_points_measurement;
         x_pred = mean_sigma_points_model+K*(e);
@@ -159,6 +159,9 @@ end
 
 function initialize_plot()
     figure(1)
+    clf
+    set(figure(1), 'position', [ 0 0 500 300]) 
+    movegui('northeast')
     subplot(6,3,[1 2 3])
     hold on
     xlim([0 20])
@@ -234,6 +237,15 @@ function plot_e(e,ii)
 end
 function initialize_plot_P()
     subplot(6,3,[13 14 15])
+end
+function initialize_sp_plot()
+    figure(2)
+    clf
+    set(figure(2), 'position', [ 0 0 500 250]) 
+    movegui('southeast')
+    title('Sigma points')
+    view([0.9,1.1,0.9]);
+    figure(1)
 end
 function plot_P(P)
     subplot(6,3,[13 14])
