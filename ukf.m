@@ -35,7 +35,7 @@ function pred_vec = ukf(alpha,beta,k,q,r,sigma_init,x_pred_0,signal)
     Q=q*I3;
     
     x_pred=x_pred_0';
-    P=sigma_init*eye(L);
+    P=(sigma_init^2)*eye(L);
         
     %% Compute weights
     % Weights to compute the mean of the transformed sigma points

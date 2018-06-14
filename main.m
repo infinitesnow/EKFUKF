@@ -1,10 +1,9 @@
-clf
 clc
 clear all
 
 %% Initial values
 initial_omega = pi/8;
-tolerance = 10;
+tolerance = 20;
 n_simulations = 100;
 step_profile = [0.1 0.3 0.5 0.8];
 
@@ -41,9 +40,9 @@ for ii = 1:n_simulations
         1, ...%alpha
         2, ...%beta
         2, ...%k
-        1e-5,...%q
-        1e-10,...%r
-        1e-10, ...%sigma_init
+        1e-2,...%q
+        1e-5,...%r
+        sigma_init, ...%sigma_init
         x_pred_0, ...%x_pred_0
         signal ...%signal
     );

@@ -1,4 +1,3 @@
-clf
 clc
 clear all
 
@@ -40,8 +39,8 @@ pred_vec_ukf=ukf( ...
     1, ...%alpha
     2, ...%beta
     2, ...%k
-    1e-5,...%q
-    1e-10,...%r
+    1e-2,...%q
+    1e-5,...%r
     sigma_init, ...%sigma_init
     x_pred_0, ...%x_pred_0
     signal ...%signal
