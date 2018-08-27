@@ -10,13 +10,25 @@ initial_omega=pi/8;
 % [signal omega]=generate_signal_step(10,initial_omega,[],0.1); 
 
 % Generate signal with a given frequency profile
-[signal omega]=generate_signal_step(3,initial_omega,[0.1 0.3 0.5 0.8],0.01); 
+% [signal omega]=generate_signal_step(3,initial_omega,[0.1 0.3 0.5 0.8],0.01); 
 
 % Generate signal with harmonics
 % [signal omega]=generate_signal_harmonics(5,[initial_omega 2; initial_omega*4 0.01],0);
 
 % Generate signal from simulation 
 % [signal omega]=generate_signal_simulation(1,0,initial_omega,0.01,0.1,1000); 
+
+% Read signal from audio
+[ signal, sr ] = audioread('1760hz.wav');
+% Crop signal
+n_samples = 5000;      % samples
+signal = signal(1:n_samples);
+% Compute correct pulsation for verification
+freq = 880;          % in hertz, known a priori
+freq = 1/sr*freq;    % in samples/sec
+w = 2*pi*freq;       % in rad/sec
+omega = ones(1,length(signal))*w;
+initial_omega = omega(1) + normrnd(0,0.1);
 
 %% Track
 % We initialize filter with states to 0 and around the right initial frequency with a given variance
@@ -56,12 +68,14 @@ function static_plot(signal,omega,pred_vec_ekf,pred_vec_ukf)
     t=1:length(signal);
     subplot(3,1,1)
     plot(t,omega,'k-',t,pred_vec_ekf(3,:),'r-',t,pred_vec_ukf(3,:),'b');
-    legend('True','Estimated EKF','Estimated UKF');
+    legend(['True (',num2str(omega(1)),')'],'Estimated EKF','Estimated UKF');
     title('Omega estimation');
     subplot(3,1,2)
     plot(t,signal,'ko',t,pred_vec_ekf(1,:),'b-',t,pred_vec_ekf(2,:),'r-');
+    legend('signal','1','2')
     title('States EKF');
     subplot(3,1,3)
     plot(t,signal,'ko',t,pred_vec_ukf(1,:),'b-',t,pred_vec_ukf(2,:),'r-');
+    legend('signal','1','2')
     title('States UKF');
 end
