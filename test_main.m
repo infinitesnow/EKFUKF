@@ -19,16 +19,15 @@ initial_omega=pi/8;
 % [signal omega]=generate_signal_simulation(1,0,initial_omega,0.01,0.1,1000); 
 
 % Read signal from audio
-[ signal, sr ] = audioread('1760hz.wav');
+[ signal, sr ] = audioread('440hz.wav');
 % Crop signal
 n_samples = 5000;      % samples
 signal = signal(1:n_samples);
 % Compute correct pulsation for verification
-freq = 880;          % in hertz, known a priori
+freq = 440;          % in hertz, known a priori
 freq = 1/sr*freq;    % in samples/sec
-w = 2*pi*freq;       % in rad/sec
-omega = ones(1,length(signal))*w;
-initial_omega = omega(1) + normrnd(0,0.1);
+initial_omega = 2*pi*freq;       % in rad/sec
+omega = ones(1,length(signal))*initial_omega;
 
 %% Track
 % We initialize filter with states to 0 and around the right initial frequency with a given variance
