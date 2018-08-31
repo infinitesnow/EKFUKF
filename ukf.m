@@ -1,4 +1,5 @@
-function pred_vec = ukf(alpha,beta,k,q,r,sigma_init,x_pred_0,signal)
+function pred_vec = ukf(signal,x_pred_0,sigma_init,varargin)
+    %% Settings
     global window_size 
     window_size = 50;
     PLOT=false;
@@ -23,6 +24,29 @@ function pred_vec = ukf(alpha,beta,k,q,r,sigma_init,x_pred_0,signal)
         initialize_sp_plot();
     end
     
+    %% Parse arguments
+    % only want 5 optional inputs at most
+    numvarargs = length(varargin);
+    if numvarargs > 5
+        error('Too many inputs');
+    end
+
+    % Set defaults for optional inputs
+    optargs = {...
+        1e-13, ...%r
+        1e-10, ...%q
+        1, ...%alpha
+        2, ...%beta
+        2 ...%k
+    };
+
+    % Now put these defaults into the valuesToUse cell array, 
+    % and overwrite the ones specified in varargin.
+    optargs(1:numvarargs) = varargin;
+
+    % Place optional args in variable names
+    [r,q,alpha,beta,k] = optargs{:};
+            
     %% Set initial values
     L = size(compute_f(x_pred_0'),1); % The state space size;
     L_m = size(compute_h(x_pred_0'),1); % The measurement state space size
@@ -42,13 +66,13 @@ function pred_vec = ukf(alpha,beta,k,q,r,sigma_init,x_pred_0,signal)
     Wm0=lambda/(L+lambda);
     Wmi=1/(2*(L+lambda))*ones(1,2*L);
     Wm=[Wm0, Wmi];
-    Wm=Wm/sum(Wm);
+    Wm=Wm/sum(Wm); % Weight normalization?
     
     % Weights to compute the covariance of the transformed sigma points
     Wc0=Wm0+1-alpha^2+beta;
     Wci=Wmi;
     Wc=[Wc0, Wci]; 
-    Wc=Wc/sum(Wc);
+    Wc=Wc/sum(Wc); % Weight normalization?
     
     % Check that dimensions are valid (both row, columns)
     assert(all(size(Wm)==[1 2*L+1])); 

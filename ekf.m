@@ -1,4 +1,4 @@
-function pred_vec=ekf(lambda,x_pred_0,sigma_init,signal)
+function pred_vec=ekf(signal,x_pred_0,sigma_init,varargin)
     global window_size 
     window_size = 50;
     PLOT=false;
@@ -18,12 +18,29 @@ function pred_vec=ekf(lambda,x_pred_0,sigma_init,signal)
     if (PLOT_P)
         initialize_plot_P();
     end
+        
+    %% Parse arguments
+     % only want 2 optional inputs at most
+    numvarargs = length(varargin);
+    if numvarargs > 2
+        error('Too many inputs');
+    end
+
+    % Set defaults for optional inputs
+    optargs = {...
+        1e-3, ...%r
+        1, ...%q
+    };
+
+    % Now put these defaults into the valuesToUse cell array, 
+    % and overwrite the ones specified in varargin.
+    optargs(1:numvarargs) = varargin;
+
+    % Place optional args in variable names
+    [r,q] = optargs{:};
     
     %% Set initial values
     simulation_length=length(signal);
-    
-    q=1;
-    r=lambda;
     
     x_pred=x_pred_0';
     K=[0 0 0]';
