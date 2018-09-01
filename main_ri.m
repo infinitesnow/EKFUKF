@@ -8,21 +8,19 @@ PLOT_PREDICTION = false;
 initial_omega = pi/2;
 step_profile = [pi/13 -pi/7 pi/5 -pi/3 pi/2 -pi/1.7 pi/1.5]; % Approximation of Fig.2 on the paper
 step_length = 400;    
-symmetric = false; % Should the profile be symmetric?
-sigma = 1e-2;
-q = 1e-10;
+sigma = 1e-4;
+q = 1e-7;
 r = sigma*q;
 n_simulations = 20;
-threshold = 10;
-noise_sigma = 0.1;
+threshold = 50;
+sigma_noise = 0.03;
 
 ri_ekf = zeros(1,n_simulations);
 ri_ukf = ri_ekf;
 for ii = 1:n_simulations
-    fprintf('Iteration %d...\n',ii)
+    fprintf('Iteration %d\n',ii)
     % Generate signal
-    [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,symmetric); 
-    signal = signal + noise_sigma*randn(1,length(signal));
+    [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise);
 
     %% Track    
     sigma_init = 0.01;
@@ -47,12 +45,15 @@ for ii = 1:n_simulations
     pred_omega_ekf = pred_vec_ekf(3,:); 
     pred_omega_ukf = pred_vec_ukf(3,:); 
     
+    disp('************ EKF *************');
     ri_ekf(ii) = compute_ri(pred_omega_ekf,omega,step_length,threshold);
+    disp('************ UKF *************');
     ri_ukf(ii) = compute_ri(pred_omega_ukf,omega,step_length,threshold);
 
     % Plot ground truth and predictions
     if PLOT_PREDICTION
         figure(1)
+        clf
         title('Predictions for RI');
         t = 1:length(omega);
         stairs(t, omega, 'k');
