@@ -167,7 +167,9 @@ function pred_vec = ukf(signal,x_pred_0,sigma_init,varargin)
         if (PLOT_P)
             plot_P(P);
         end
-        drawnow
+        if (PLOT || PLOT_K || PLOT_e || PLOT_P)
+            drawnow
+        end
     end
 end
 
