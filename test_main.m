@@ -28,33 +28,33 @@ freq = 440;          % in hertz, known a priori
 freq = 1/sr*freq;    % in samples/sec
 initial_omega = 2*pi*freq;       % in rad/sec
 omega = ones(1,length(signal))*initial_omega;
+q = 1e-10;
+sigma = 1e-10;
 
 %% Track
 % We initialize filter with states to 0 and around the right initial frequency with a given variance
-sigma_init=0.3*initial_omega; % This value is also used for the initialization of P for the EKF
-x_pred_0=[0 0 normrnd(initial_omega,sigma_init)];
+sigma_init=0.001*initial_omega; % This value is also used for the initialization of P for the EKF
+x_pred_0=[0 0 initial_omega];
 
 disp('Computing EKF estimation')
 tic
-pred_vec_ekf=ekf( ...
-    1, ...%lambda
+pred_vec_ekf = ekf( ... 
+    signal, ...%signal
     x_pred_0, ...%x_pred_0
     sigma_init, ...%sigma_init
-    signal ...%signal
+    q*sigma, ... %r,
+    q ... %q
 );
 toc
 
 disp('Computing UKF estimation')
 tic
-pred_vec_ukf=ukf( ...
-    1, ...%alpha
-    2, ...%beta
-    2, ...%k
-    1e-2,...%q
-    1e-5,...%r
-    sigma_init, ...%sigma_init
+pred_vec_ukf = ukf( ... 
+    signal, ...%signal
     x_pred_0, ...%x_pred_0
-    signal ...%signal
+    sigma_init, ...%sigma_init
+    q*sigma, ... %r,
+    q ... %q
 );
 toc
 

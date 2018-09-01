@@ -66,13 +66,13 @@ function pred_vec = ukf(signal,x_pred_0,sigma_init,varargin)
     Wm0=lambda/(L+lambda);
     Wmi=1/(2*(L+lambda))*ones(1,2*L);
     Wm=[Wm0, Wmi];
-    Wm=Wm/sum(Wm); % Weight normalization?
+%     Wm=Wm/sum(Wm); % Weight normalization?
     
     % Weights to compute the covariance of the transformed sigma points
     Wc0=Wm0+1-alpha^2+beta;
     Wci=Wmi;
     Wc=[Wc0, Wci]; 
-    Wc=Wc/sum(Wc); % Weight normalization?
+%     Wc=Wc/sum(Wc); % Weight normalization?
     
     % Check that dimensions are valid (both row, columns)
     assert(all(size(Wm)==[1 2*L+1])); 
