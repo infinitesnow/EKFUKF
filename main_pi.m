@@ -1,11 +1,14 @@
 clear all
+clc
 
 q = 1e-7;
 n_sigmas = 100;
-sigma_start = +3;
-sigma_end = -8;
+sigma_start = 1.5e-3;
+sigma_end = 1e-4;
+initialization_noise_sigma = 0.003;
+n_iterations = 3;
+convergence_threshold = 50;
 COMPUTE = true;
-PLOT_PREDICTIONS = false;
 
 %% PI
 % Parameters
@@ -19,41 +22,12 @@ sigma_noise = 0.001;
 [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise);
 
 % Perform analysis
-sigmas = logspace(sigma_start,sigma_end,n_sigmas);
-pi_curve_ekf = zeros(2,length(sigmas));
-pi_curve_ukf = pi_curve_ekf;
-ii = 1;
 if COMPUTE
-    for sigma = sigmas
-        fprintf('Iteration %d\n',ii);
-        [pi_ekf, pred_omega_ekf] = pi_analysis_ekf(signal, omega, step_length, t_transient, q*sigma, q);
-        pi_curve_ekf(:,ii) = pi_ekf';
-        [pi_ukf, pred_omega_ukf] = pi_analysis_ukf(signal, omega, step_length, t_transient, q*sigma, q);
-        pi_curve_ukf(:,ii) = pi_ukf';
-        ii=ii+1;
-        fprintf('\n');
-
-        % Plot ground truth and predictions
-        if PLOT_PREDICTIONS
-            figure(1)
-            title('Predictions for PI');
-            t = 1:length(omega);
-            stairs(t, omega, 'k');
-            xlabel('Samples')
-            ylabel('Omega')
-            set(gca,'YLim',[pi/8,3/8*pi]);
-            set(gca,'YTick',pi/8:pi/16:3/8*pi);
-            set(gca,'YTickLabel',{'pi/8','3/16*pi','pi/4','5/16*pi','3/8pi'});
-            hold on
-            plot(t,pred_omega_ekf,'ro');
-            plot(t,pred_omega_ukf,'bx');
-            legend('True','EKF','UKF')
-        end
-    end
-
-    save('pi_curve_ekf.mat','pi_curve_ekf')
-    save('pi_curve_ukf.mat','pi_curve_ukf')
-else
+    sigmas = linspace(sigma_start,sigma_end,n_sigmas);
+    
+    [pi_curve_ekf, pi_curve_ukf] = ...
+        pi_analysis(signal, omega, step_length, t_transient, q, initialization_noise_sigma, sigmas, n_iterations);
+else    
     if exist('pi_curve_ekf.mat','file') && exist('pi_curve_ukf.mat','file')
         load('pi_curve_ekf.mat','pi_curve_ekf')
         load('pi_curve_ukf.mat','pi_curve_ukf')
@@ -62,11 +36,67 @@ else
     end
 end
 
+%% Remove iterations which didn't converge
+not_converged_ekf = union( ...
+    find(pi_curve_ekf(1,:)>convergence_threshold), find(pi_curve_ekf(2,:)>convergence_threshold) );
+fprintf('EKF didn''t converge %d times\n',length(not_converged_ekf))
+not_converged_ukf = union( ...
+    find(pi_curve_ukf(1,:)>convergence_threshold), find(pi_curve_ukf(2,:)>convergence_threshold) );
+fprintf('UKF didn''t converge %d times\n',length(not_converged_ukf))
+pi_curve_ekf(:,not_converged_ekf)=[];
+pi_curve_ukf(:,not_converged_ukf)=[];
+
+
+%% LS regression
+
+fit_model = @(b,x) b(1) + b(2)./(x + b(3)); % Generalised Hyperbola
+
+ls_fit = @(b,pi_curve) sum((pi_curve(1,:)-fit_model(b,pi_curve(2,:))).^2);
+ls_fit_ekf = @(b) ls_fit(b,pi_curve_ekf);
+ls_fit_ukf = @(b) ls_fit(b,pi_curve_ukf);
+
+B0 = [0 0 0];
+opt = optimset('TolFun',1e-8,'TolX',1e-8);
+B_ekf = fminsearch(ls_fit_ekf, B0, opt);
+B_ukf = fminsearch(ls_fit_ukf, B0, opt);    
+
 figure(2)
 title('PI curves')
-scatter(pi_curve_ekf(2,:),pi_curve_ekf(1,:),'ro')
+pi_curve_ekf_et = pi_curve_ekf(1,:);
+pi_curve_ekf_ess = pi_curve_ekf(2,:);
+pi_curve_ekf_sigma = pi_curve_ekf(3,:);
+pi_curve_ukf_et = pi_curve_ukf(1,:);
+pi_curve_ukf_ess = pi_curve_ukf(2,:);
+pi_curve_ukf_sigma = pi_curve_ukf(3,:);
 hold on
-scatter(pi_curve_ukf(2,:),pi_curve_ukf(1,:),'bx')
-legend('EKF','UKF')
+scatter(pi_curve_ekf_ess,pi_curve_ekf_et,'ro')
+plot(pi_curve_ekf_ess,fit_model(B_ekf,pi_curve_ekf_ess),'r-');
+scatter(pi_curve_ukf_ess,pi_curve_ukf_et,'bx')
+plot(pi_curve_ukf_ess,fit_model(B_ukf,pi_curve_ukf_ess),'b-');
+legend('EKF','EKF fit','UKF','UKF fit')
 xlabel('MSE steady state')
 ylabel('MSE transient')
+
+figure(3)
+subplot(1,2,1)
+plot(pi_curve_ekf_sigma,pi_curve_ekf_et);
+title('EKF Transient error')
+xlabel('Sigma')
+ylabel('Error')
+subplot(1,2,2)
+plot(pi_curve_ekf_sigma,pi_curve_ekf_ess);
+xlabel('Sigma')
+ylabel('Error')
+title('EKF Steady state error')
+
+figure(4)
+subplot(1,2,1)
+semilogx(pi_curve_ukf_sigma,pi_curve_ukf_et);
+xlabel('Sigma')
+ylabel('Error')
+title('UKF Transient error')
+subplot(1,2,2)
+semilogx(pi_curve_ukf_sigma,pi_curve_ukf_ess);
+xlabel('Sigma')
+ylabel('Error')
+title('UKF Steady state error')

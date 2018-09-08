@@ -1,4 +1,4 @@
-function pred_vec=ekf(signal,x_pred_0,sigma_init,varargin)
+function pred_vec=ekf(signal,x_pred_0,initial_sigma,varargin)
     global window_size 
     window_size = 50;
     PLOT=false;
@@ -44,7 +44,7 @@ function pred_vec=ekf(signal,x_pred_0,sigma_init,varargin)
     
     x_pred=x_pred_0';
     K=[0 0 0]';
-    P=sigma_init*eye(3);
+    P=initial_sigma*eye(3);
     
     H=[1 0 0];
     I3=eye(3);
