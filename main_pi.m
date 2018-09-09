@@ -1,14 +1,14 @@
 clear all
 clc
 
-q = 1e-5;
-n_sigmas = 100;
-sigma_start = 1;
-sigma_end = -2;
+q = 1e-7;
+n_sigmas = 1000;
+sigma_start = 3;
+sigma_end = -8;
 initialization_noise_sigma = 0.001;
 n_iterations = 2;
-convergence_threshold = 5;
-COMPUTE = false;
+convergence_threshold = 10;
+COMPUTE = true;
 LOGSPACE = true;
 
 %% PI

@@ -1,0 +1,18 @@
+q = 1e-3;
+n_sigmas = 1000;
+sigma_start = 3;
+sigma_end = -8;
+initialization_noise_sigma = 0.001;
+n_iterations = 2;
+convergence_threshold = 10;
+COMPUTE = true;
+LOGSPACE = true;
+
+% Parameters
+initial_omega = pi/4;
+step_profile = [pi/20 -pi/10 pi/8 -pi/6.5 pi/5.5 -pi/5];
+step_length = 1000;
+t_transient = [100 200 300 400 500 500];
+sigma_noise = 0.001;
+
+%% Note: EKF didn't change performances, UKF did
