@@ -8,8 +8,9 @@ sigma_end = -8;
 initialization_noise_sigma = 0.001;
 n_iterations = 2;
 convergence_threshold = 10;
-COMPUTE = true;
+COMPUTE = false;
 LOGSPACE = true;
+PLOT_CLOUD = false;
 
 %% PI
 % Parameters
@@ -74,11 +75,15 @@ pi_curve_ukf_et = pi_curve_ukf(1,:);
 pi_curve_ukf_ess = pi_curve_ukf(2,:);
 pi_curve_ukf_sigma = pi_curve_ukf(3,:);
 hold on
-scatter(pi_curve_ekf_ess,pi_curve_ekf_et,'ro')
 plot(pi_curve_ekf_ess,fit_model(B_ekf,pi_curve_ekf_ess),'r-');
-scatter(pi_curve_ukf_ess,pi_curve_ukf_et,'bx')
 plot(pi_curve_ukf_ess,fit_model(B_ukf,pi_curve_ukf_ess),'b-');
-legend('EKF','EKF fit','UKF','UKF fit')
+if (PLOT_CLOUD)
+    scatter(pi_curve_ekf_ess,pi_curve_ekf_et,'ro')
+    scatter(pi_curve_ukf_ess,pi_curve_ukf_et,'bx')
+    legend('EKF','EKF fit','UKF','UKF fit')
+else
+    legend('EKF fit','UKF fit')
+end
 xlabel('MSE steady state')
 ylabel('MSE transient')
 
