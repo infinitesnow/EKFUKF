@@ -1,19 +1,22 @@
 %% RI
 clear all
+close all
 clc
 
 PLOT_PREDICTION = false;
+PLOT_PROFILE = false;
 
 % Parameters
 initial_omega = pi/2;
-step_profile = [pi/13 -pi/7 pi/5 -pi/3 pi/2 -pi/1.7 pi/1.5]; % Approximation of Fig.2 on the paper
+step_profile = [pi/11 -pi/5.5 pi/4 -pi/3.4 pi/2.8 -pi/2.5 pi/2 -pi/1.6 pi/1.4]; % Approximation of Fig.2 on the paper
 step_length = 400;    
-sigma = 1e-4;
-q = 1e-7;
+sigma = 1e+1;
+q = 1e-3;
 r = sigma*q;
 n_simulations = 20;
+initialization_noise_sigma = 0.001;
 threshold = 50;
-sigma_noise = 0.03;
+sigma_noise = 0.3;
 
 ri_ekf = zeros(1,n_simulations);
 ri_ukf = ri_ekf;
@@ -23,20 +26,19 @@ for ii = 1:n_simulations
     [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise);
 
     %% Track    
-    sigma_init = 0.01;
-    x_pred_0 = [0, 0, omega(1)]; % Perfect initialization
+    x_pred_0 = [0, 0, normrnd(omega(1),omega(1)*initialization_noise_sigma)]; % Initialization
 
     pred_vec_ekf = ekf( ... 
         signal, ...%signal
         x_pred_0, ...%x_pred_0
-        sigma_init, ...%sigma_init
+        initialization_noise_sigma, ...%sigma_init
         r, ... %r,
         q ... %q
     );
     pred_vec_ukf = ukf( ... 
         signal, ...%signal
         x_pred_0, ...%x_pred_0
-        sigma_init, ...%sigma_init
+        initialization_noise_sigma, ...%sigma_init
         r, ... %r,
         q ... %q
     );
@@ -74,7 +76,18 @@ steps_axis = 1:n_steps;
 psi_ekf = hist(ri_ekf, steps_axis);
 psi_ukf = hist(ri_ukf, steps_axis);
 
-figure()
+if PLOT_PROFILE 
+    figure(1)
+    hold off
+    stairs(omega)
+    xlabel('Samples')
+    ylabel('Omega')
+    set(gca,'YLim',[initial_omega-pi/2,initial_omega+pi/2]);
+    set(gca,'YTick',0:pi/4:pi);
+    set(gca,'YTickLabel',{'0' 'pi/4','pi/2','3/4pi','pi'});
+end
+
+figure(2)
 title('RI')
 bar(steps_axis,[psi_ekf', psi_ukf'])
 legend('EKF','UKF')

@@ -1,5 +1,4 @@
 I is not diag(0,0,1) but (1,1,1)
 Not true that depends only on q/r? P tends to zero, order magnitude depends on q only, numerical precision!
-Real case use sigma>1, measurement error!?
-More robust with sigma 1e-4, q 1e-3. With q really small, really similar?
+With noise sigma must be >1, measurement error!?
 q = 1e-7 seems to offer results most similar to paper?

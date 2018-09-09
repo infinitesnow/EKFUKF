@@ -19,7 +19,7 @@ pred_vec=ekf( ...
 pred_omega = pred_vec(3,:); 
 
 %% Compute PI
-[mse_transient, mse_steadystate] = compute_pi(pred_omega, omega, step_length, t_transient);
+[mse_transient, mse_steadystate] = compute_pi(pred_omega, omega, step_length, t_transient, true);
 pi_ekf = [mse_transient, mse_steadystate];
 
 %% Output values

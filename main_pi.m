@@ -6,9 +6,9 @@ n_sigmas = 100;
 sigma_start = 1.5e-3;
 sigma_end = 1e-4;
 initialization_noise_sigma = 0.003;
-n_iterations = 3;
+n_iterations = 1;
 convergence_threshold = 50;
-COMPUTE = true;
+COMPUTE = false;
 
 %% PI
 % Parameters

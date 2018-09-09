@@ -1,24 +1,8 @@
 clc
 clear all
+close all
 
-%% Initial values
-initial_omega=pi/8;
-
-%% Generate signal
-
-% Generate signal with a given frequency, no noise
-% [signal omega]=generate_signal_step(10,initial_omega,[],0.1); 
-
-% Generate signal with a given frequency profile
-% [signal omega]=generate_signal_step(3,initial_omega,[0.1 0.3 0.5 0.8],0.01); 
-
-% Generate signal with harmonics
-% [signal omega]=generate_signal_harmonics(5,[initial_omega 2; initial_omega*4 0.01],0);
-
-% Generate signal from simulation 
-% [signal omega]=generate_signal_simulation(1,0,initial_omega,0.01,0.1,1000); 
-
-% Read signal from audio
+%% Read signal from audio
 [ signal, sr ] = audioread('880hz.wav');
 % Crop signal
 n_samples = 5000;      % samples
@@ -28,13 +12,13 @@ freq = 880;          % in hertz, known a priori
 freq = 1/sr*freq;    % in samples/sec
 initial_omega = 2*pi*freq;       % in rad/sec
 omega = ones(1,length(signal))*initial_omega;
-q = 1e-7;
+q = 1e-5;
 sigma = 1e+3;
 
 %% Track
 % We initialize filter with states to 0 and around the right initial frequency with a given variance
-sigma_init=0.01*initial_omega; % This value is also used for the initialization of P for the EKF
-x_pred_0=[0 0 normrnd(initial_omega,sigma_init)];
+sigma_init=0.05; % This value is also used for the initialization of P for the EKF
+x_pred_0=[0 0 normrnd(initial_omega,sigma_init*initial_omega)];
 
 disp('Computing EKF estimation')
 tic
@@ -62,6 +46,11 @@ toc
 figure()
 hold on
 static_plot(signal,omega,pred_vec_ekf,pred_vec_ukf) 
+
+[pi_ekf(1), pi_ekf(2)] = compute_pi(pred_vec_ekf(3,:),omega,5000,200,false);
+[pi_ukf(1), pi_ukf(2)] = compute_pi(pred_vec_ukf(3,:),omega,5000,200,false);
+fprintf('PI for EKF:\n e_t: %e, e_ss: %e \n',pi_ekf(1),pi_ekf(2));
+fprintf('PI for UKF:\n e_t: %e, e_ss: %e \n',pi_ukf(1),pi_ukf(2));
 
 function static_plot(signal,omega,pred_vec_ekf,pred_vec_ukf)
     t=1:length(signal);
