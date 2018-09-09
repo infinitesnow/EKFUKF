@@ -1,14 +1,15 @@
 clear all
 clc
 
-q = 1e-7;
+q = 1e-5;
 n_sigmas = 100;
-sigma_start = 1.5e-3;
-sigma_end = 1e-4;
-initialization_noise_sigma = 0.003;
-n_iterations = 1;
-convergence_threshold = 50;
+sigma_start = 1;
+sigma_end = -2;
+initialization_noise_sigma = 0.001;
+n_iterations = 2;
+convergence_threshold = 5;
 COMPUTE = false;
+LOGSPACE = true;
 
 %% PI
 % Parameters
@@ -23,7 +24,11 @@ sigma_noise = 0.001;
 
 % Perform analysis
 if COMPUTE
-    sigmas = linspace(sigma_start,sigma_end,n_sigmas);
+    if LOGSPACE==true
+        sigmas = logspace(sigma_start,sigma_end,n_sigmas);
+    else
+        sigmas = linspace(sigma_start,sigma_end,n_sigmas);
+    end
     
     [pi_curve_ekf, pi_curve_ukf] = ...
         pi_analysis(signal, omega, step_length, t_transient, q, initialization_noise_sigma, sigmas, n_iterations);
@@ -79,12 +84,12 @@ ylabel('MSE transient')
 
 figure(3)
 subplot(1,2,1)
-plot(pi_curve_ekf_sigma,pi_curve_ekf_et);
+semilogx(pi_curve_ekf_sigma,pi_curve_ekf_et);
 title('EKF Transient error')
 xlabel('Sigma')
 ylabel('Error')
 subplot(1,2,2)
-plot(pi_curve_ekf_sigma,pi_curve_ekf_ess);
+semilogx(pi_curve_ekf_sigma,pi_curve_ekf_ess);
 xlabel('Sigma')
 ylabel('Error')
 title('EKF Steady state error')
