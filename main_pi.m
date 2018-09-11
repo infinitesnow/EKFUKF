@@ -2,15 +2,15 @@ clear all
 clc
 
 q = 1e-7;
-n_sigmas = 1000;
+n_sigmas = 500;
 sigma_start = 3;
-sigma_end = -8;
+sigma_end = 0;
 initialization_noise_sigma = 0.001;
 n_iterations = 2;
 convergence_threshold = 10;
 COMPUTE = false;
 LOGSPACE = true;
-PLOT_CLOUD = false;
+PLOT_CLOUD = true;
 
 %% PI
 % Parameters
@@ -43,14 +43,22 @@ else
 end
 
 %% Remove iterations which didn't converge
-not_converged_ekf = union( ...
+not_converged_ekf_indices = union( ...
     find(pi_curve_ekf(1,:)>convergence_threshold), find(pi_curve_ekf(2,:)>convergence_threshold) );
-fprintf('EKF didn''t converge %d times\n',length(not_converged_ekf))
-not_converged_ukf = union( ...
+converged_ekf_indices = setdiff(1:size(pi_curve_ekf,2),not_converged_ekf_indices);
+fprintf('EKF didn''t converge %d times\n',length(not_converged_ekf_indices))
+not_converged_ukf_indices = union( ...
     find(pi_curve_ukf(1,:)>convergence_threshold), find(pi_curve_ukf(2,:)>convergence_threshold) );
-fprintf('UKF didn''t converge %d times\n',length(not_converged_ukf))
-pi_curve_ekf(:,not_converged_ekf)=[];
-pi_curve_ukf(:,not_converged_ukf)=[];
+converged_ukf_indices = setdiff(1:size(pi_curve_ekf,2),not_converged_ukf_indices);
+fprintf('UKF didn''t converge %d times\n',length(not_converged_ukf_indices))
+
+converged_ekf_bool = zeros(1,size(pi_curve_ekf,2));
+converged_ukf_bool = zeros(1,size(pi_curve_ukf,2));
+converged_ekf_bool(converged_ekf_indices) = 1;
+converged_ukf_bool(converged_ukf_indices) = 1;
+
+pi_curve_ekf_converged = pi_curve_ekf(:,converged_ekf_indices);
+pi_curve_ukf_converged = pi_curve_ukf(:,converged_ukf_indices);
 
 
 %% LS regression
@@ -58,8 +66,8 @@ pi_curve_ukf(:,not_converged_ukf)=[];
 fit_model = @(b,x) b(1) + b(2)./(x + b(3)); % Generalised Hyperbola
 
 ls_fit = @(b,pi_curve) sum((pi_curve(1,:)-fit_model(b,pi_curve(2,:))).^2);
-ls_fit_ekf = @(b) ls_fit(b,pi_curve_ekf);
-ls_fit_ukf = @(b) ls_fit(b,pi_curve_ukf);
+ls_fit_ekf = @(b) ls_fit(b,pi_curve_ekf_converged);
+ls_fit_ukf = @(b) ls_fit(b,pi_curve_ukf_converged);
 
 B0 = [0 0 0];
 opt = optimset('TolFun',1e-8,'TolX',1e-8);
@@ -68,12 +76,12 @@ B_ukf = fminsearch(ls_fit_ukf, B0, opt);
 
 figure(2)
 title('PI curves')
-pi_curve_ekf_et = pi_curve_ekf(1,:);
-pi_curve_ekf_ess = pi_curve_ekf(2,:);
-pi_curve_ekf_sigma = pi_curve_ekf(3,:);
-pi_curve_ukf_et = pi_curve_ukf(1,:);
-pi_curve_ukf_ess = pi_curve_ukf(2,:);
-pi_curve_ukf_sigma = pi_curve_ukf(3,:);
+pi_curve_ekf_et = pi_curve_ekf_converged(1,:);
+pi_curve_ekf_ess = pi_curve_ekf_converged(2,:);
+pi_curve_ekf_sigma = pi_curve_ekf_converged(3,:);
+pi_curve_ukf_et = pi_curve_ukf_converged(1,:);
+pi_curve_ukf_ess = pi_curve_ukf_converged(2,:);
+pi_curve_ukf_sigma = pi_curve_ukf_converged(3,:);
 hold on
 plot(pi_curve_ekf_ess,fit_model(B_ekf,pi_curve_ekf_ess),'r-');
 plot(pi_curve_ukf_ess,fit_model(B_ukf,pi_curve_ukf_ess),'b-');
@@ -110,3 +118,23 @@ semilogx(pi_curve_ukf_sigma,pi_curve_ukf_ess);
 xlabel('Sigma')
 ylabel('Error')
 title('UKF Steady state error')
+
+%% Plot convergence
+k = 20;
+sigma = 10;
+gaussian_filter=fspecial('gauss',[1, k], sigma);
+derivative_gaussian_filter = gradient(gaussian_filter); 
+
+figure(5)
+subplot(1,2,1)
+convergence_ekf = conv(cumsum(converged_ekf_bool),derivative_gaussian_filter);
+convergence_ekf = convergence_ekf(1:end-k+1);
+semilogx(pi_curve_ekf(3,:),convergence_ekf,'b')
+xlim([0 +inf]) 
+title('Convergence ratio EKF')
+subplot(1,2,2)
+convergence_ukf = conv(cumsum(converged_ukf_bool),derivative_gaussian_filter);
+convergence_ukf = convergence_ukf(1:end-k+1);
+semilogx(pi_curve_ukf(3,:),convergence_ukf,'b')
+xlim([0 +inf])
+title('Convergence ratio UKF')
