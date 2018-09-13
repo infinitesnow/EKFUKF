@@ -1,9 +1,12 @@
 function pred_vec = ukf(signal,x_pred_0,initial_sigma,varargin)
+global logpath
+
 %% Settings
 window_size = 50;
 VERBOSE = false;
-SAVE_UKF_PLOT = false;   
-SAVE_SP_PLOT = false;
+LOG = false;
+SAVE_UKF_PLOT = true;   
+SAVE_SP_PLOT = true;
 
 if (SAVE_UKF_PLOT) 
     initialize_plot_ukf
@@ -35,6 +38,14 @@ optargs(1:numvarargs) = varargin;
 % Place optional args in variable names
 [r,q,alpha,beta,k] = optargs{:};
 
+if (LOG)
+    s1 = strcat(logpath,'ukf');
+    if (~exist(s1,'dir')), mkdir(s1), end
+    s2 = sprintf('\\log_ukf_sigma%1.3e.txt',r/q);
+    logfile = fopen(strcat(s1,s2),'w');
+    fprintf(logfile,'********** STARTING UKF WITH r=%e, q=%e **********\n\n\n\n',r,q);
+end
+
 %% Set initial values
 L = size(compute_f(x_pred_0'),1); % The state space size;
 L_m = size(compute_h(x_pred_0'),1); % The measurement state space size
@@ -54,13 +65,11 @@ P=initial_sigma*eye(L);
 Wm0=lambda/(L+lambda);
 Wmi=1/(2*(L+lambda))*ones(1,2*L);
 Wm=[Wm0, Wmi];
-%     Wm=Wm/sum(Wm); % Weight normalization?
 
 % Weights to compute the covariance of the transformed sigma points
 Wc0=Wm0+1-alpha^2+beta;
 Wci=Wmi;
 Wc=[Wc0, Wci]; 
-%     Wc=Wc/sum(Wc); % Weight normalization?
 
 % Check that dimensions are valid (both row, columns)
 assert(all(size(Wm)==[1 2*L+1])); 
@@ -143,12 +152,25 @@ for k=1:simulation_length
     if (VERBOSE)
         fprintf('Iteration %d...\n',k);
     end
+    if (LOG)
+        fprintf(logfile,'\n\n\n********** Iteration %d **********\n\n',k);
+        fprintf(logfile,'P:\t| %e %e %e |\n',P');
+        fprintf(logfile,'K:\t| %e %e %e |\n',K);
+        fprintf(logfile,'e:\t %e\n',e);
+        fprintf(logfile,'COV_SP_model: | %e %e %e |\n',Covariance_sigma_points_model);
+        fprintf(logfile,'COV_SP_measurement: | %e |\n',Covariance_sigma_points_measurement);
+        fprintf(logfile,'COV_SP_statemeasurement: | %e %e %e |\n',Covariance_sigma_points_statemeasurement');
+end
     if (SAVE_UKF_PLOT && ii~=simulation_length)
         plot_ukf
     end
     if (SAVE_SP_PLOT && ii~=simulation_length)
         plot_sp
     end
+end
+
+if (LOG)
+    fclose(logfile);
 end
 
 if (SAVE_UKF_PLOT | SAVE_SP_PLOT)

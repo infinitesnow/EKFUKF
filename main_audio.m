@@ -7,17 +7,18 @@ addpath('./ekf/');
 addpath('./pi/');
 
 %% Read signal from audio
-[ signal, sr ] = audioread('audio/880hz.wav');
+freq = 1760;          % in hertz, known a priori
+[ signal, sr ] = audioread(strcat('audio/',num2str(freq),'hz.wav'));
 % Crop signal
-n_samples = 500;      % samples
+n_samples = 10;      % samples
 signal = signal(1:n_samples);
 % Compute correct pulsation for verification
-freq = 880;          % in hertz, known a priori
 freq = 1/sr*freq;    % in samples/sec
 initial_omega = 2*pi*freq;       % in rad/sec
 omega = ones(1,length(signal))*initial_omega;
-q = 10^(-4.8);
-sigma = 10^(2.1);
+q = 10^(-11);
+sigma = 10^(9);
+t_transient = 500;
 
 %% Track
 % We initialize filter with states to 0 and around the right initial frequency with a given variance
@@ -63,7 +64,7 @@ plot(t,signal,'ko',t,pred_vec_ukf(1,:),'b-',t,pred_vec_ukf(2,:),'r-');
 legend('signal','1','2')
 title('States UKF');
 
-[pi_ekf(1), pi_ekf(2)] = compute_pi(pred_vec_ekf(3,:),omega,n_samples,200,false);
-[pi_ukf(1), pi_ukf(2)] = compute_pi(pred_vec_ukf(3,:),omega,n_samples,200,false);
+[pi_ekf(1), pi_ekf(2)] = compute_pi(pred_vec_ekf(3,:),omega,n_samples,t_transient,false);
+[pi_ukf(1), pi_ukf(2)] = compute_pi(pred_vec_ukf(3,:),omega,n_samples,t_transient,false);
 fprintf('PI for EKF:\n e_t: %e, e_ss: %e \n',pi_ekf(1),pi_ekf(2));
 fprintf('PI for UKF:\n e_t: %e, e_ss: %e \n',pi_ukf(1),pi_ukf(2));

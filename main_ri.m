@@ -2,6 +2,14 @@
 clear all
 close all
 clc
+fclose('all');
+
+global logpath;
+
+addpath('./ukf')
+addpath('./ekf')
+addpath('./generate')
+addpath('./ri')
 
 PLOT_PREDICTION = false;
 PLOT_PROFILE = false;
@@ -18,15 +26,16 @@ n_simulations = 1000;
 initialization_noise_sigma = 0.001;
 threshold = 50;
 sigma_noise = 0.3;
+sigma_noise_omega = 0.02;
 
 
 if (COMPUTE)
     ri_ekf = zeros(1,n_simulations);
     ri_ukf = ri_ekf;
     for ii = 1:n_simulations
-        fprintf('Iteration %d\n',ii)
+        fprintf('***** Iteration %d\n *****',ii)
         % Generate signal
-        [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise);
+        [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise,sigma_noise_omega);
 
         %% Track    
         x_pred_0 = [0, 0, normrnd(omega(1),omega(1)*initialization_noise_sigma)]; % Initialization

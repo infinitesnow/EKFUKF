@@ -1,8 +1,11 @@
 function pred_vec=ekf(signal,x_pred_0,initial_sigma,varargin)
+    global logpath;
+
     window_size = 50;
-    SAVE_EKF_PLOT = false;
+    SAVE_EKF_PLOT = true;
+    LOG = false;
     VERBOSE = false;
-        
+
     %% Parse arguments
      % only want 2 optional inputs at most
     numvarargs = length(varargin);
@@ -22,35 +25,51 @@ function pred_vec=ekf(signal,x_pred_0,initial_sigma,varargin)
 
     % Place optional args in variable names
     [r,q] = optargs{:};
-    
+
+    if (LOG)
+        s1 = strcat(logpath,'ekf');
+        if (~exist(s1,'dir')), mkdir(s1), end
+        s2 = sprintf('\\log_ekf_sigma%1.3e.txt',r/q);
+        logfile = fopen(strcat(s1,s2),'w');    
+        fprintf(logfile,'********** STARTING EKF WITH r=%e, q=%e **********\n\n\n\n',r,q);
+    end
+
     %% Set initial values
     simulation_length=length(signal);
-    
+
     x_pred=x_pred_0';
     K=[0 0 0]';
     P=initial_sigma*eye(3);
-    
+
     H=[1 0 0];
     I3=eye(3);
-    
+
     if (SAVE_EKF_PLOT)
         initialize_plot_ekf
     end
-    
+
     %% Start tracking
     pred_vec=[];
-    
+
     for ii=1:simulation_length
         y = signal(ii);
         e = y-H*compute_f(x_pred); % Compute the innovation
         x_pred=compute_f(x_pred)+K*e; % Compute the new Kalman prediction
 
         F=compute_F(x_pred); % Compute F in the predicted state
-        P=F*P*F'+q*I3-F*P*H'*inv(H*P*H'+r)*H*P*F'; % Compute the new P
+        hph = H*P*H'+r;
+        P=F*P*F'+q*I3-F*P*H'*inv(hph)*H*P*F'; % Compute the new P
         K=P*H'*inv(H*P*H'+r); % Compute K
 
         pred_vec = [pred_vec x_pred]; % Save new prediction
-        
+
+        if (LOG)
+            fprintf(logfile,'\n\n\n********** Iteration %d **********\n\n',ii);
+            fprintf(logfile,'P:\t| %e %e %e |\n',P');
+            fprintf(logfile,'K:\t| %e %e %e |\n',K);
+            fprintf(logfile,'e:\t %e\n',e);
+            fprintf(logfile,'H*P*H''+r: %e\n',hph);
+        end
         if (VERBOSE)
             fprintf('Iteration %d...\n',ii);
         end
@@ -58,7 +77,11 @@ function pred_vec=ekf(signal,x_pred_0,initial_sigma,varargin)
             plot_ekf
         end
     end
-    
+
+    if (LOG)
+        fclose(logfile);
+    end
+
     if (SAVE_EKF_PLOT)
         addpath('./generate/')
         generate_video('ekf',EKF);
