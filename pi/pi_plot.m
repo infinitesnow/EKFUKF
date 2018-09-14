@@ -1,6 +1,5 @@
-PLOT_CLOUD = true;
-string = sprintf ('sigmanoise_%1.3f_q%1.2e',sigma_noise,q);
-path = strcat(pwd,'\data\pi\',string,'\');
+PLOT_FIT = false;
+path = strcat(pwd,'\data\pi\',namestring,'\');
 if ~exist(path,'dir'), mkdir(path), end
 
 %% Remove iterations which didn't converge
@@ -35,23 +34,28 @@ opt = optimset('TolFun',1e-8,'TolX',1e-8);
 B_ekf = fminsearch(ls_fit_ekf, B0, opt);
 B_ukf = fminsearch(ls_fit_ukf, B0, opt);    
 
-pi_curves_figure = figure('visible','off');
-title('PI curves')
 pi_curve_ekf_et = pi_curve_ekf_converged(1,:);
 pi_curve_ekf_ess = pi_curve_ekf_converged(2,:);
 pi_curve_ekf_sigma = pi_curve_ekf_converged(3,:);
 pi_curve_ukf_et = pi_curve_ukf_converged(1,:);
 pi_curve_ukf_ess = pi_curve_ukf_converged(2,:);
 pi_curve_ukf_sigma = pi_curve_ukf_converged(3,:);
+
+pi_curves_figure = figure('visible','off');
+title('PI curves')
 hold on
-plot(pi_curve_ekf_ess,fit_model(B_ekf,pi_curve_ekf_ess),'r-');
-plot(pi_curve_ukf_ess,fit_model(B_ukf,pi_curve_ukf_ess),'b-');
-legend('EKF fit','UKF fit')
-saveas(pi_curves_figure, strcat(path,'pi_fit'), 'png');
+if (PLOT_FIT)
+    plot(pi_curve_ekf_ess,fit_model(B_ekf,pi_curve_ekf_ess),'r-');
+    plot(pi_curve_ukf_ess,fit_model(B_ukf,pi_curve_ukf_ess),'b-');
+end
 scatter(pi_curve_ekf_ess,pi_curve_ekf_et,'ro')
 scatter(pi_curve_ukf_ess,pi_curve_ukf_et,'bx')
-legend('EKF','EKF fit','UKF','UKF fit')
-saveas(pi_curves_figure, strcat(path,'pi_cloud'), 'png');
+if(~PLOT_FIT)
+    legend('EKF','UKF')
+else
+    legend('EKF','EKF fit','UKF','UKF fit')
+end
+saveas(pi_curves_figure, strcat(path,'pi_cloud_',namestring,'.png'), 'png');
 xlabel('MSE steady state')
 ylabel('MSE transient')
 

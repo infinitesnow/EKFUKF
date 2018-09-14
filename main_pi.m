@@ -38,8 +38,8 @@ end
 for sigma_noise = sigma_noises
     for q = qs
         % Create folder
-        string = sprintf ('sigmanoise_%1.3f_q%1.2e',sigma_noise,q);
-        logpath = strcat(pwd,'\data\pi\',string,'\');
+        namestring = sprintf ('sn_%1.3f_q%1.2e',sigma_noise,q);
+        logpath = strcat(pwd,'\data\pi\',namestring,'\');
         if ~exist(logpath,'dir'), mkdir(logpath), end
         
         % Generate signal
