@@ -2,7 +2,7 @@ function pred_vec=ekf(signal,x_pred_0,initial_sigma,varargin)
     global logpath;
 
     window_size = 50;
-    SAVE_EKF_PLOT = true;
+    SAVE_EKF_PLOT = false;
     LOG = false;
     VERBOSE = false;
 

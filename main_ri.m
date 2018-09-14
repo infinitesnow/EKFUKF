@@ -19,21 +19,25 @@ COMPUTE = true;
 initial_omega = pi/2;
 step_profile = [pi/11 -pi/5.5 pi/4 -pi/3.4 pi/2.8 -pi/2.5 pi/2 -pi/1.6 pi/1.4]; % Approximation of Fig.2 on the paper
 step_length = 400;    
-sigma = 1e+2;
+sigma = 1e+1;
 q = 1e-5;
 r = sigma*q;
-n_simulations = 1000;
+n_simulations = 200;
 initialization_noise_sigma = 0.001;
 threshold = 50;
-sigma_noise = 0.3;
-sigma_noise_omega = 0.02;
+sigma_noise = 0.02;
+sigma_noise_omega = 0.001;
 
+if (PLOT_PREDICTION)
+    ri_figure = figure('visible','off');
+    set(ri_figure, 'Position', [0, 0, 720, 720],'Resize','off')
+end
 
 if (COMPUTE)
     ri_ekf = zeros(1,n_simulations);
     ri_ukf = ri_ekf;
     for ii = 1:n_simulations
-        fprintf('***** Iteration %d\n *****',ii)
+        fprintf('***** Iteration %d *****\n',ii)
         % Generate signal
         [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise,sigma_noise_omega);
 
@@ -66,8 +70,8 @@ if (COMPUTE)
 
         % Plot ground truth and predictions
         if PLOT_PREDICTION
-            figure(1)
-            clf
+            set(0, 'currentfigure', ri_figure);
+            clf;
             title('Predictions for RI');
             t = 1:length(omega);
             stairs(t, omega, 'k');
@@ -79,8 +83,13 @@ if (COMPUTE)
             hold on
             plot(t,pred_omega_ekf,'ro');
             plot(t,pred_omega_ukf,'bx');
-            legend('True')%,'EKF','UKF')
+            legend('True','EKF','UKF')
+            RI(ii) = getframe;
         end
+    end
+    
+    if (PLOT_PREDICTION)
+        generate_video('ri',RI);
     end
 
     save('ri_ekf.mat','ri_ekf')
@@ -110,7 +119,9 @@ if PLOT_PROFILE
     set(gca,'YTickLabel',{'0' 'pi/4','pi/2','3/4pi','pi'});
 end
 
-figure(2)
+ri_figure = figure(2)
 title('RI')
 bar(steps_axis,[psi_ekf', psi_ukf'])
 legend('EKF','UKF')
+string = sprintf('\\ri\\ri_figure_q%1.2e_s%1.2e_sn%1.2e_sno%1.2e.png',q,sigma,sigma_noise,sigma_noise_omega);
+saveas(ri_figure, strcat(pwd,string), 'png');

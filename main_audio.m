@@ -10,7 +10,7 @@ addpath('./pi/');
 freq = 1760;          % in hertz, known a priori
 [ signal, sr ] = audioread(strcat('audio/',num2str(freq),'hz.wav'));
 % Crop signal
-n_samples = 10;      % samples
+n_samples = 500;      % samples
 signal = signal(1:n_samples);
 % Compute correct pulsation for verification
 freq = 1/sr*freq;    % in samples/sec
@@ -18,7 +18,7 @@ initial_omega = 2*pi*freq;       % in rad/sec
 omega = ones(1,length(signal))*initial_omega;
 q = 10^(-11);
 sigma = 10^(9);
-t_transient = 500;
+t_transient = 250;
 
 %% Track
 % We initialize filter with states to 0 and around the right initial frequency with a given variance

@@ -5,8 +5,8 @@ global logpath
 window_size = 50;
 VERBOSE = false;
 LOG = false;
-SAVE_UKF_PLOT = true;   
-SAVE_SP_PLOT = true;
+SAVE_UKF_PLOT = false;   
+SAVE_SP_PLOT = false;
 
 if (SAVE_UKF_PLOT) 
     initialize_plot_ukf
