@@ -14,15 +14,18 @@ end
 n_steps = length(profile);
 signal=zeros(1,n_samples_step*n_steps);
 instantaneous_omega=signal;
+t = 1:n_samples_step*n_steps;
+
 for ii=1:n_steps
     omega = profile(ii);
-    t = 1:n_samples_step;
-    % For each step, we generate a sinusoid with noisy omega
-    signal(1+(ii-1)*n_samples_step : ii*n_samples_step) =  ...
-         sin( omega*t + sigma_omega_noise*omega*randn(1,n_samples_step) ); 
-    % In the end we return the real omegas for testing purposes
     instantaneous_omega(1+(ii-1)*n_samples_step:ii*n_samples_step) = ...
-        omega*ones(1,length(t));
+        omega*ones(1,n_samples_step);
+end
+
+Phi = cumsum(instantaneous_omega);
+
+for ii=1:length(t)
+    signal(ii) = sin(Phi(ii) + normrnd(0,sigma_omega_noise*instantaneous_omega(ii)));
 end
 
 if(sigma_noise~=0)

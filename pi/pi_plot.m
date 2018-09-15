@@ -47,17 +47,19 @@ hold on
 if (PLOT_FIT)
     plot(pi_curve_ekf_ess,fit_model(B_ekf,pi_curve_ekf_ess),'r-');
     plot(pi_curve_ukf_ess,fit_model(B_ukf,pi_curve_ukf_ess),'b-');
-end
-scatter(pi_curve_ekf_ess,pi_curve_ekf_et,'ro')
-scatter(pi_curve_ukf_ess,pi_curve_ukf_et,'bx')
-if(~PLOT_FIT)
-    legend('EKF','UKF')
 else
-    legend('EKF','EKF fit','UKF','UKF fit')
+    scatter(pi_curve_ekf_ess,pi_curve_ekf_et,'ro')
+    scatter(pi_curve_ukf_ess,pi_curve_ukf_et,'bx')
 end
-saveas(pi_curves_figure, strcat(path,'pi_cloud_',namestring,'.png'), 'png');
 xlabel('MSE steady state')
 ylabel('MSE transient')
+if(~PLOT_FIT)
+    legend('EKF','UKF')
+    saveas(pi_curves_figure, strcat(path,'pi_cloud_',namestring,'.png'), 'png');
+else
+    legend('EKF fit','UKF fit')
+    saveas(pi_curves_figure, strcat(path,'pi_fit_',namestring,'.png'), 'png');
+end
 
 sigma_error_figure = figure('visible','off');
 subplot(2,2,1)
@@ -82,7 +84,7 @@ xlabel('Sigma')
 ylabel('Error')
 title('UKF Steady state error')
 
-saveas(sigma_error_figure, strcat(path,'sigma_error_figure'), 'png');
+saveas(sigma_error_figure, strcat(path,'sigma_error_figure_',namestring,'.png'), 'png');
 
 %% Plot convergence
 k = floor(n_sigmas/10);
@@ -104,4 +106,4 @@ semilogx(pi_curve_ukf(3,:),convergence_ukf,'b')
 xlim([0 +inf])
 title('Convergence ratio UKF')
 
-saveas(convergence_figure, strcat(path,'convergence'), 'png');
+saveas(convergence_figure, strcat(path,'convergence_',namestring,'.png'), 'png');

@@ -155,10 +155,19 @@ for k=1:simulation_length
     if (LOG)
         fprintf(logfile,'\n\n\n********** Iteration %d **********\n\n',k);
         fprintf(logfile,'P:\t| %e %e %e |\n',P');
+        fprintf(logfile,'\n');
         fprintf(logfile,'K:\t| %e %e %e |\n',K);
+        fprintf(logfile,'\n');
         fprintf(logfile,'e:\t %e\n',e);
+        fprintf(logfile,'\n');
+        fprintf(logfile,'SP_model: | %e %e %e|\n', transformed_sigma_points_model');
+        fprintf(logfile,'\n');
+        fprintf(logfile,'SP_measurement: | %e %e %e %e %e %e %e |\n', transformed_sigma_points_measurement');
+        fprintf(logfile,'\n');
         fprintf(logfile,'COV_SP_model: | %e %e %e |\n',Covariance_sigma_points_model);
+        fprintf(logfile,'\n');
         fprintf(logfile,'COV_SP_measurement: | %e |\n',Covariance_sigma_points_measurement);
+        fprintf(logfile,'\n');
         fprintf(logfile,'COV_SP_statemeasurement: | %e %e %e |\n',Covariance_sigma_points_statemeasurement');
 end
     if (SAVE_UKF_PLOT && ii~=simulation_length)

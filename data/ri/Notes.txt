@@ -1,2 +1,0 @@
-Sigma 1e+0 always does really bad (<2)
-With q1e-7 EKF goes really bad, maybe numerical matter?

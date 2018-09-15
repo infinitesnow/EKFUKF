@@ -13,8 +13,8 @@ addpath('./generate')
 n_sigmas = 150;
 sigma_start = 3;
 sigma_end = -4;
-sigma_noises = [ 0 0.005 0.08 0.17 0.3];
-qs = [ 1e-3 1e-4 10^(-4.5) 1e-5 10^(-5.5) 1e-6 10^(-6.5) 1e-7 10^(-7.5) 1e-8 1e-9];
+sigma_noises = [ 0 0.005 0.08 0.17];
+qs = [ 1e-3 1e-4 1e-5 1e-6 1e-7 1e-8];
 sigma_omega_noise = 0;
 initialization_noise_sigma = 0.001;
 n_iterations = 1;
@@ -29,6 +29,13 @@ step_length = 1000;
 t_transient = [100 200 300 400 500 500];
 
 % Perform analysis
+fprintf('Evaluating with %d%% frequency variance, SNR: {',round(sigma_omega_noise*100));
+for sigma_noise = sigma_noises(1:end-1)
+    fprintf('%d dB, ',round(20*log10(1/sigma_noise)));
+end
+fprintf('%d dB',round(20*log10(1/sigma_noises(end))));
+fprintf('}\n')
+
 if LOGSPACE==true
     sigmas = logspace(sigma_start,sigma_end,n_sigmas);
 else
@@ -38,7 +45,7 @@ end
 for sigma_noise = sigma_noises
     for q = qs
         % Create folder
-        namestring = sprintf ('sn_%1.3f_q%1.2e',sigma_noise,q);
+        namestring = sprintf ('sn_%1.3f_sno%1.3f_q%1.2e',sigma_noise,sigma_omega_noise,q);
         logpath = strcat(pwd,'\data\pi\',namestring,'\');
         if ~exist(logpath,'dir'), mkdir(logpath), end
         

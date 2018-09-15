@@ -22,16 +22,22 @@ step_length = 400;
 sigma = 1e+1;
 q = 1e-5;
 r = sigma*q;
-n_simulations = 200;
+n_simulations = 500;
 initialization_noise_sigma = 0.001;
-threshold = 50;
-sigma_noise = 0.02;
-sigma_noise_omega = 0.001;
+threshold = 120;
+sigma_noise = 2e-2;
+sigma_omega_noise = 1e-3;
+% sigma_noise = 4e-1;
+% sigma_omega_noise = 3e-1;
 
 if (PLOT_PREDICTION)
     ri_figure = figure('visible','off');
     set(ri_figure, 'Position', [0, 0, 720, 720],'Resize','off')
 end
+
+namestring = sprintf('q%1.2e_s%1.2e_sn%1.2e_sno%1.2e',q,sigma,sigma_noise,sigma_omega_noise);
+logpath = strcat(pwd,'\data\ri\',namestring,'\')
+if ~exist(logpath,'dir'), mkdir(logpath), end
 
 if (COMPUTE)
     ri_ekf = zeros(1,n_simulations);
@@ -39,7 +45,7 @@ if (COMPUTE)
     for ii = 1:n_simulations
         fprintf('***** Iteration %d *****\n',ii)
         % Generate signal
-        [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise,sigma_noise_omega);
+        [signal, omega]=generate_signal_step(step_length,initial_omega,step_profile,sigma_noise,sigma_omega_noise);
 
         %% Track    
         x_pred_0 = [0, 0, normrnd(omega(1),omega(1)*initialization_noise_sigma)]; % Initialization
@@ -89,15 +95,15 @@ if (COMPUTE)
     end
     
     if (PLOT_PREDICTION)
-        generate_video('ri',RI);
+        generate_video(strcat('ri_',namestring),RI);
     end
 
-    save('ri_ekf.mat','ri_ekf')
-    save('ri_ukf.mat','ri_ukf')
+    save(strcat(logpath,'ri_ekf.mat'),'ri_ekf')
+    save(strcat(logpath,'ri_ukf.mat'),'ri_ukf')
 else
     if exist('ri_ekf.mat','file') && exist('ri_ukf.mat','file')
-        load('ri_ekf.mat','ri_ekf')
-        load('ri_ukf.mat','ri_ukf')
+        load(strcat(logpath,'ri_ekf.mat'),'ri_ekf')
+        load(strcat(logpath,'ri_ukf.mat'),'ri_ukf')
     else
         error('No saved curves. Recompute.')
     end
@@ -119,9 +125,8 @@ if PLOT_PROFILE
     set(gca,'YTickLabel',{'0' 'pi/4','pi/2','3/4pi','pi'});
 end
 
-ri_figure = figure(2)
+ri_figure = figure(2);
 title('RI')
 bar(steps_axis,[psi_ekf', psi_ukf'])
 legend('EKF','UKF')
-string = sprintf('\\ri\\ri_figure_q%1.2e_s%1.2e_sn%1.2e_sno%1.2e.png',q,sigma,sigma_noise,sigma_noise_omega);
-saveas(ri_figure, strcat(pwd,string), 'png');
+saveas(ri_figure, strcat(logpath,'ri_figure_',namestring,'.png'), 'png');
