@@ -1,0 +1,45 @@
+\begin{table}
+
+\begin{subtable}[t]{\linewidth}
+\centering
+\begin{tabular}{l|c|c|c}
+    & q             & $\sigma$      & MSE           \\
+\hline
+EKF & \num{1e-11}   & \num{1e+8}    & \num{3.60e-7} \\
+\hline
+UKF & \num{1e-11}   & \num{1e+8}    & \num{4.53e-7} \\
+\end{tabular}
+\caption{440 Hz}
+\end{subtable}
+
+\quad
+
+\begin{subtable}{\linewidth}
+\centering
+\begin{tabular}{l|c|c|c}
+    & q             & $\sigma$      & MSE           \\
+\hline
+EKF & \num{1e-11}   & \num{1e+9}    & \num{4.29e-7} \\
+\hline
+UKF & \num{1e-11}   & \num{1e+9}    & \num{4.41e-7} \\
+\end{tabular}
+\caption{880 Hz}
+\end{subtable}
+
+\quad
+
+\begin{subtable}{\linewidth}
+\centering
+\begin{tabular}{l|c|c|c}
+    & q             & $\sigma$      & MSE           \\
+\hline
+EKF & \num{1e-11}   & \num{1e+9}    & \num{8.69e-8} \\
+\hline
+UKF & \num{1e-11}   & \num{1e+9}    & \num{9.52e-8} \\
+\end{tabular}
+\caption{1760 Hz}
+\end{subtable}
+
+\caption{ Frequency estimation performances on a real world sinusoidal signal}
+\label{tab:real_sig_frequencies}
+\end{table}

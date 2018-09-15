@@ -1,0 +1,47 @@
+\newcommand{\pifigurewidth}{0.29}
+
+\begin{table}
+    \makebox[\linewidth][c]{
+    \centering
+    \begin{tabular}{|c|cccc|}
+        \hline
+        & \multicolumn{4}{c|}{SNR}\\
+        \cline{2-5}
+        q & $\infty$ & $46 \si{\decibel}$ & $22 \si{\decibel}$ & $15 \si{\decibel}$\\
+        \hline
+        \num{1e-3} & 
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.000_sno0.000_q1.00e-03}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.005_sno0.000_q1.00e-03}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.080_sno0.000_q1.00e-03}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.170_sno0.000_q1.00e-03}.png}\\
+        \num{1e-4} & 
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.000_sno0.000_q1.00e-04}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.005_sno0.000_q1.00e-04}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.080_sno0.000_q1.00e-04}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.170_sno0.000_q1.00e-04}.png}\\
+        \num{1e-5} & 
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.000_sno0.000_q1.00e-05}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.005_sno0.000_q1.00e-05}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.080_sno0.000_q1.00e-05}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.170_sno0.000_q1.00e-05}.png}\\
+        \num{1e-6} & 
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.000_sno0.000_q1.00e-06}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.005_sno0.000_q1.00e-06}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.080_sno0.000_q1.00e-06}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.170_sno0.000_q1.00e-06}.png}\\
+        \num{1e-7} & 
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.000_sno0.000_q1.00e-07}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.005_sno0.000_q1.00e-07}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.080_sno0.000_q1.00e-07}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.170_sno0.000_q1.00e-07}.png}\\
+        \num{1e-8} & 
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.000_sno0.000_q1.00e-08}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.005_sno0.000_q1.00e-08}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.080_sno0.000_q1.00e-08}.png} &
+        \includegraphics[width=\pifigurewidth\linewidth,align=c]{{images/results/pi/sigma_curves/pi_cloud_sn_0.170_sno0.000_q1.00e-08}.png}\\
+        \hline
+    \end{tabular}
+    }
+    \caption{Obtained curves for the PI. On the $x$ axis is the $e_{ss}$, while on the $y$ axis is the $e_t$. Thresholding has been applied to remove non converged iterations.}
+    \label{tab:pi_results}
+\end{table}
