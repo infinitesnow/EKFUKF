@@ -1,4 +1,5 @@
 # Time-varying frequency Estimation of narrow-band signals via Extended Kalman Filter and Unscented Kalman Filter
+See included [paper](MIAS_2018.pdf) for more details.
 
 ## Files list
 * **main_audio.m** Performs frequency tracking of 3 audio files at 3 different frequencies. Generates a plot of the estimation. 
