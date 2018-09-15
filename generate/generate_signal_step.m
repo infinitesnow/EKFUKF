@@ -25,7 +25,7 @@ end
 Phi = cumsum(instantaneous_omega);
 
 for ii=1:length(t)
-    signal(ii) = sin(Phi(ii) + normrnd(0,sigma_omega_noise*instantaneous_omega(ii)));
+    signal(ii) = sin(Phi(ii) + normrnd(0,sigma_omega_noise*initial_omega));
 end
 
 if(sigma_noise~=0)

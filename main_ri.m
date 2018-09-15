@@ -25,10 +25,10 @@ r = sigma*q;
 n_simulations = 500;
 initialization_noise_sigma = 0.001;
 threshold = 120;
-sigma_noise = 2e-2;
-sigma_omega_noise = 1e-3;
-% sigma_noise = 4e-1;
-% sigma_omega_noise = 3e-1;
+% sigma_noise = 2e-2;
+% sigma_omega_noise = 1e-3;
+sigma_noise = 4e-1;
+sigma_omega_noise = 3e-1;
 
 if (PLOT_PREDICTION)
     ri_figure = figure('visible','off');
